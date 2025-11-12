@@ -17,7 +17,7 @@ export default function App() {
 
   // Inactivity timer
   const last = useRef<number>(Date.now())
-  const warnAt = 25_000 // show modal at 25s
+  const warnAt = 60_000 // show modal at 25s
   const resetAt = 60_000 // go idle at 30s
 
   useEffect(()=>{
@@ -27,10 +27,21 @@ export default function App() {
     const id = setInterval(()=>{
       const d = Date.now() - last.current
       if (d > warnAt && d < resetAt && !loc.pathname.startsWith('/idle')) setShowTimeout(true)
-      // if (d >= resetAt) { setShowTimeout(false); nav('/') ; last.current = Date.now() }
+      if (d >= resetAt) { setShowTimeout(false); nav('/') ; last.current = Date.now() }
     }, 500)
     return ()=>{ window.removeEventListener('pointerdown', onAny); window.removeEventListener('keydown', onAny); clearInterval(id) }
   }, [nav, loc.pathname])
+
+  useEffect(()=>{
+  if (loc.pathname === '/') {
+    const id = setInterval(()=> nav('/idle2'), 10000)
+    return ()=> clearInterval(id)
+  }
+  if (loc.pathname === '/idle2') {
+    const id = setInterval(()=> nav('/'), 10000)
+    return ()=> clearInterval(id)
+  }
+}, [loc.pathname, nav])
 
   const value = useMemo(()=>({lang, setLang}), [lang])
   const location = useLocation()
