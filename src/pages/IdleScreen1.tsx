@@ -5,7 +5,7 @@ export default function IdleScreen1() {
 
   return (
     <div className="relative h-full w-full bg-white flex flex-col">
-        <div className="bg-[#f28c28] text-white text-center py-2 text-lg font-semibold">
+        <div className="bg-[#f28c28] text-white text-center py-3 text-3xl font-bold tracking-wide">
           Bus Terminal Map
         </div>
 
@@ -20,7 +20,7 @@ export default function IdleScreen1() {
       {/* Touch to Start Bar */}
       <div
         onClick={() => nav("/home")}
-        className="absolute bottom-0 left-0 right-0 bg-[#f28c28] text-white text-center text-xl font-semibold py-6 cursor-pointer rounded-b-[25px]"
+        className="absolute bottom-0 left-0 right-0 bg-[#f28c28] text-white text-center text-2xl font-extrabold py-6 cursor-pointer rounded-b-[25px] tracking-wide shadow-lg"
       >
         Touch to Start
       </div>
