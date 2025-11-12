@@ -18,7 +18,7 @@ export default function App() {
   // Inactivity timer
   const last = useRef<number>(Date.now())
   const warnAt = 60_000 // show modal at 25s
-  const resetAt = 60_000 // go idle at 30s
+  const resetAt = 90_000 // go idle at 30s
 
   useEffect(()=>{
     const onAny = () => { last.current = Date.now(); setShowTimeout(false) }
@@ -47,10 +47,29 @@ export default function App() {
   const location = useLocation()
   const isIdle = location.pathname === '/' || location.pathname === '/idle2'
   const hideBottomBar = isIdle
-  const showProgress =
-    location.pathname.startsWith('/payment') ||
-    location.pathname.startsWith('/confirm') ||
-    location.pathname.startsWith('/destination')
+    // decide when to show the progress bar
+  const path = location.pathname
+
+  // Pages where the progress bar is visible
+  const showProgress = [
+    '/destination',
+    '/map',
+    '/mapConfirm',
+    '/tickets',
+    '/summary',
+    '/done'
+  ].some(prefix => path.startsWith(prefix))
+
+  // Default progress
+  let progress = 0
+
+  // Set percentage based on path
+  if (path.startsWith('/destination')) progress = 0
+  else if (path.startsWith('/map')) progress = 0
+  else if (path.startsWith('/mapConfirm')) progress = 0
+  else if (path.startsWith('/tickets')) progress = 33
+  else if (path.startsWith('/summary')) progress = 80
+  else if (path.startsWith('/done')) progress = 100
 
 
   return (
@@ -62,9 +81,7 @@ export default function App() {
         <div className={isIdle ? "relative h-full p-0" : "relative p-4 min-h-[400px]"}>
           <Outlet />
         </div>
-
-        {!hideBottomBar && <BottomBar showProgress={showProgress} />}
-
+       {!hideBottomBar && <BottomBar showProgress={showProgress} progress={progress} />}
 
       </div>
 

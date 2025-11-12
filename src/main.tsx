@@ -14,6 +14,7 @@ import OrderSummary from './pages/OrderSummary'
 import ThankYou from './pages/ThankYou'
 import LanguageSelect from './pages/LanguageSelect'
 import HelpCenter from './pages/HelpCenter'
+import Map from './pages/Map'
 
 const router = createBrowserRouter([
   {
@@ -24,7 +25,8 @@ const router = createBrowserRouter([
       { path: 'idle2', element: <IdleScreen2 /> },
       { path: 'home', element: <Home /> },
       { path: 'destination', element: <Destination /> },
-      { path: 'map', element: <MapConfirm /> },
+      { path: 'map', element: <Map /> },
+      { path: 'mapConfirm', element: <MapConfirm /> },
       { path: 'routes', element: <RouteSelect /> },
       { path: 'tickets', element: <TicketSelect /> },
       { path: 'summary', element: <OrderSummary /> },
