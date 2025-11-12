@@ -47,6 +47,11 @@ export default function App() {
   const location = useLocation()
   const isIdle = location.pathname === '/' || location.pathname === '/idle2'
   const hideBottomBar = isIdle
+  const showProgress =
+    location.pathname.startsWith('/payment') ||
+    location.pathname.startsWith('/confirm') ||
+    location.pathname.startsWith('/destination')
+
 
   return (
     <LangCtx.Provider value={value}>
@@ -58,7 +63,9 @@ export default function App() {
           <Outlet />
         </div>
 
-        {!hideBottomBar && <BottomBar />}
+        {!hideBottomBar && <BottomBar showProgress={showProgress} />}
+
+
       </div>
 
       <Modal open={showTimeout} onClose={()=>setShowTimeout(false)}>
