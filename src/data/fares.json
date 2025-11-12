@@ -1,0 +1,5 @@
+{
+  "oneWay": { "adult": 3.50, "youth": 2.75, "senior": 2.00 },
+  "monthly": { "adult": 105.00, "youth": 70.00, "senior": 55.00 },
+  "taxRate": 0.13
+}

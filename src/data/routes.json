@@ -1,0 +1,10 @@
+[
+  { "number": "1", "destination": "Bowness - Forest Lawn", "time": 10 },
+  { "number": "301", "destination": "Downtown - Express", "time": 17 },
+  { "number": "54", "destination": "Sandstone - Elbow Drive", "time": 17 },
+  { "number": "8", "destination": "Tuscany - Chinook", "time": 20 },
+  { "number": "9", "destination": "Brentwood - Heritage", "time": 30 },
+  { "number": "37", "destination": "Westbrook - Marlborough", "time": 35 },
+  { "number": "569", "destination": "Quarry Park - Mount Royal", "time": 45 },
+  { "number": "2", "destination": "Evergreen - South Centre", "time": 45 }
+]
