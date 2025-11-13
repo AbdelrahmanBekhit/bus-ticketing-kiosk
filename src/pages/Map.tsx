@@ -24,12 +24,17 @@ export default function Map() {
 
   return (
     <div className="flex flex-col items-center gap-4 relative h-full bg-white">
+      
       {/* Address Input */}
       <button
-        onClick={() => setShowKeyboard(true)}
+        onClick={() => {
+          // Clear placeholder on focus
+          if (address === "Please Enter Address") setAddress("")
+          setShowKeyboard(true)
+        }}
         className="flex items-center justify-between w-[90%] border border-gray-400 rounded-full px-4 py-2 text-gray-600 text-lg shadow-sm hover:shadow-md transition mt-4"
       >
-        <span>{address}</span>
+        <span>{address === "" ? "Please Enter Address" : address}</span>
         <span className="text-xl font-semibold">{">"}</span>
       </button>
 
@@ -57,20 +62,35 @@ export default function Map() {
       </div>
 
       {/* Confirm Button */}
-      <div className="mt-4 text-center"><button className="btn" onClick={()=> nav('/mapConfirm')}>Confirm</button></div>
+      <div className="mt-4 text-center">
+        <button className="btn" onClick={() => nav('/mapConfirm')}>Confirm</button>
+      </div>
 
       {/* Keyboard Overlay */}
       {showKeyboard && (
         <KeyboardOverlay
           onInsert={(key) => {
-            if (key === "⌫") setAddress((prev) => prev.slice(0, -1))
-            else if (key === "⇧") return
-            else
-              setAddress((prev) =>
-                prev === "Please Enter Address" ? key : prev + key
-              )
+            // BACKSPACE
+            if (key === "BACKSPACE") {
+              if (address.length === 0) return
+              setAddress(prev => prev.slice(0, -1))
+              return
+            }
+
+            // SPACE
+            if (key === " ") {
+              setAddress(prev => prev + " ")
+              return
+            }
+
+            // Normal character
+            setAddress(prev => prev + key)
           }}
-          onClose={() => setShowKeyboard(false)}
+
+          onClose={() => {
+            if (address.trim() === "") setAddress("Please Enter Address")
+            setShowKeyboard(false)
+          }}
         />
       )}
     </div>
