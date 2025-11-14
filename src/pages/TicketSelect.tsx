@@ -35,18 +35,22 @@ export default function TicketSelect() {
 
   // 🟢 Update router state for dynamic progress (33% → 60%)
   useEffect(() => {
-  const hasTickets = adult + youth + senior > 0
-  const newProgress = hasTickets ? 60 : 33
+    const hasTickets = adult + youth + senior > 0
+    const newProgress = hasTickets ? 60 : 33
 
-  // Only update if progress changed
-  if (loc.state?.ticketProgress !== newProgress) {
-    nav('.', {
-      replace: true,
-      state: { ...loc.state, ticketProgress: newProgress },
-    })
+    if (loc.state?.ticketProgress !== newProgress) {
+      nav('.', {
+        replace: true,
+        state: { ...loc.state, ticketProgress: newProgress },
+      })
+    }
+  }, [adult, youth, senior]) // intentionally minimal
+
+  // 🧩 helper to safely increment/decrement with limits
+  const adjustTicket = (setter: (n: number) => void, current: number, delta: number) => {
+    const newValue = Math.min(10, Math.max(0, current + delta))
+    setter(newValue)
   }
-}, [adult, youth, senior])
-
 
   return (
     <div className="space-y-4">
@@ -80,23 +84,34 @@ export default function TicketSelect() {
           { label: 'Adult ticket (18–64)', v: adult, set: setAdult },
           { label: 'Youth ticket (10–18)', v: youth, set: setYouth },
           { label: 'Senior ticket (64+)', v: senior, set: setSenior },
-        ].map((row) => (
-          <div key={row.label} className="flex items-center justify-between">
-            <div>{row.label}</div>
-            <div className="flex items-center gap-3">
-              <button
-                className="btn-secondary"
-                onClick={() => row.set(Math.max(0, row.v - 1))}
-              >
-                –
-              </button>
-              <div className="w-8 text-center font-semibold">{row.v}</div>
-              <button className="btn" onClick={() => row.set(row.v + 1)}>
-                +
-              </button>
+        ].map((row) => {
+          const isMax = row.v >= 10
+          return (
+            <div key={row.label} className="flex items-center justify-between">
+              <div>{row.label}</div>
+              <div className="flex items-center gap-3">
+                <button
+                  className="btn-secondary"
+                  onClick={() => adjustTicket(row.set, row.v, -1)}
+                >
+                  –
+                </button>
+                <div className="w-8 text-center font-semibold">{row.v}</div>
+                <button
+                  onClick={() => adjustTicket(row.set, row.v, 1)}
+                  disabled={isMax}
+                  className={`btn transition ${
+                    isMax
+                      ? '!bg-gray-300 !text-gray-600 !border-gray-300 !cursor-not-allowed hover:!bg-gray-300 active:!bg-gray-300'
+                      : ''
+                  }`}
+                >
+                  +
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* ===== Confirm Button ===== */}
