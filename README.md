@@ -71,3 +71,8 @@ export default defineConfig([
   },
 ])
 ```
+
+### Google Maps APIS
+- Maps JavaScript API
+- Places API
+- Directions API

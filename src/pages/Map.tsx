@@ -1,34 +1,149 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import {
+  GoogleMap,
+  Marker,
+  useJsApiLoader,
+  DirectionsService,
+  DirectionsRenderer,
+} from "@react-google-maps/api"
 import KeyboardOverlay from "../components/KeyboardOverlay"
+import { extractBusLegs } from "./BusLegSummary"
+import type { BusLegSummary } from "./BusLegSummary"
+
+
+type LatLngLiteral = { lat: number; lng: number }
+
+const mapContainerStyle = {
+  width: "100%",
+  height: "100%",
+}
+
+const DEFAULT_CENTER: LatLngLiteral = {
+  lat: 51.078,
+  lng: -114.137, // University of Calgary
+}
 
 export default function Map() {
   const nav = useNavigate()
+
   const [showKeyboard, setShowKeyboard] = useState(false)
   const [address, setAddress] = useState("Please Enter Address")
-  const [selectedPoint, setSelectedPoint] = useState<{ x: number; y: number } | null>(null)
 
-  // Simulate selecting a point on the map
-  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    setSelectedPoint({ x, y })
+  const [center, setCenter] = useState<LatLngLiteral>(DEFAULT_CENTER)
+  const [userLocation, setUserLocation] = useState<LatLngLiteral | null>(null)
+
+  const [selectedPoint, setSelectedPoint] = useState<LatLngLiteral | null>(null)
+  const [destination, setDestination] = useState<LatLngLiteral | null>(null)
+
+  const [directions, setDirections] =
+    useState<google.maps.DirectionsResult | null>(null)
+  const [requestRoute, setRequestRoute] = useState(false)
+
+  const [locationError, setLocationError] = useState<string | null>(null)
+
+  const [routeReady, setRouteReady] = useState(false) // route is valid & shown
+
+  const [routeData, setBusLegs] = useState<BusLegSummary[]>([])
+
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: "google-maps-script",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
+    libraries: [],
+  })
+
+  // Get user location on mount
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported on this device.")
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        }
+        setUserLocation(loc)
+        setCenter(loc)
+      },
+      (err) => {
+        setLocationError(err.message)
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    )
+  }, [])
+
+  const handleMapClick = (e: google.maps.MapMouseEvent) => {
+    if (!e.latLng) return
+    const point = {
+      lat: e.latLng.lat(),
+      lng: e.latLng.lng(),
+    }
+    setSelectedPoint(point)
   }
 
-  // Go to next step
-  const handleConfirm = () => {
-    if (address === "Please Enter Address" && !selectedPoint) return
-    nav("/mapConfirm", { state: { address, point: selectedPoint } })
+  // 1) Show Route: geocode address, then request route from userLocation → destination
+  const handleShowRoute = () => {
+    const trimmed = address.trim()
+    if (trimmed === "" || trimmed === "Please Enter Address") return
+
+    if (!userLocation) {
+      setLocationError("User location not available. Allow location and retry.")
+      return
+    }
+
+    const geocoder = new google.maps.Geocoder()
+
+    geocoder.geocode({ address: trimmed }, (results, status) => {
+      if (status !== "OK" || !results || results.length === 0) {
+        setLocationError("Could not find that address. Please adjust and try again.")
+        return
+      }
+
+      const loc = results[0].geometry.location
+      const dest: LatLngLiteral = {
+        lat: loc.lat(),
+        lng: loc.lng(),
+      }
+
+      setDestination(dest)
+      setDirections(null)
+      setCenter(dest)
+      setRouteReady(false)
+      setRequestRoute(true)
+    })
+  }
+
+  // 2) Button click handler: Show Route (if not ready) vs Confirm (if ready)
+  const handlePrimaryButtonClick = () => {
+    if (!routeReady) {
+      // First phase: fetch and show route
+      handleShowRoute()
+    } else {
+      // Second phase: route already shown and valid → confirm + navigate
+      nav("/tickets", {
+        state: {
+          routeData,
+        },
+      })
+    }
+  }
+
+  if (loadError) {
+    return <div className="p-4 text-red-600">Failed to load Google Maps.</div>
+  }
+
+  if (!isLoaded) {
+    return <div className="p-4">Loading map…</div>
   }
 
   return (
     <div className="flex flex-col items-center gap-4 relative h-full bg-white">
-      
       {/* Address Input */}
       <button
         onClick={() => {
-          // Clear placeholder on focus
           if (address === "Please Enter Address") setAddress("")
           setShowKeyboard(true)
         }}
@@ -39,54 +154,139 @@ export default function Map() {
       </button>
 
       {/* Map Area */}
-      <div
-        onClick={handleMapClick}
-        className="relative w-[90%] h-[300px] border rounded-2xl overflow-hidden cursor-pointer"
-      >
-        <img
-          src="/assets/map-sample.png"
-          alt="Map"
-          className="w-full h-full object-cover"
-        />
+      <div className="relative w-[90%] h-[300px] border rounded-2xl overflow-hidden">
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          center={center}
+          zoom={14}
+          onClick={handleMapClick}
+          options={{
+            disableDefaultUI: true,
+            zoomControl: true,
+            streetViewControl: false,
+            fullscreenControl: false,
+            mapTypeControl: false,
+          }}
+        >
+          {/* User Location marker */}
+          {userLocation && (
+            <Marker
+              position={userLocation}
+              icon={{
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 7,
+                fillColor: "#22c55e",
+                fillOpacity: 1,
+                strokeColor: "#ffffff",
+                strokeWeight: 2,
+              }}
+            />
+          )}
 
-        {/* Red marker when clicked */}
-        {selectedPoint && (
-          <div
-            className="absolute w-4 h-4 bg-red-500 rounded-full border-2 border-white"
-            style={{
-              left: selectedPoint.x - 8,
-              top: selectedPoint.y - 8,
-            }}
-          ></div>
+          {/* Selected point marker (from map click) */}
+          {selectedPoint && (
+            <Marker
+              position={selectedPoint}
+              icon={{
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 7,
+                fillColor: "#ef4444",
+                fillOpacity: 1,
+                strokeColor: "#ffffff",
+                strokeWeight: 2,
+              }}
+            />
+          )}
+
+          {/* Destination marker (geocoded from address) */}
+          {destination && (
+            <Marker
+              position={destination}
+              icon={{
+                path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+                scale: 5,
+                fillColor: "#3b82f6",
+                fillOpacity: 1,
+                strokeColor: "#ffffff",
+                strokeWeight: 1,
+              }}
+            />
+          )}
+
+          {/* DirectionsService: only when we just requested a route */}
+          {requestRoute && userLocation && destination && (
+            <DirectionsService
+              options={{
+                origin: userLocation,
+                destination,
+                travelMode: google.maps.TravelMode.TRANSIT,
+                transitOptions: {
+                  modes: [google.maps.TransitMode.BUS],
+                },
+              }}
+              callback={(result, status) => {
+                if (status === google.maps.DirectionsStatus.OK && result) {
+                  setDirections(result)
+                  const legs = extractBusLegs(result)
+                  setBusLegs(legs)
+                  setRouteReady(true) // route is valid → button becomes "Confirm"
+                } else {
+                  console.warn("Directions request failed:", status)
+                  setLocationError(
+                    "Could not fetch route. Try again or check address."
+                  )
+                  setRouteReady(false)
+                }
+                setRequestRoute(false)
+              }}
+            />
+          )}
+
+          {/* Draw the route if we have it */}
+          {directions && (
+            <DirectionsRenderer
+              options={{
+                directions,
+                suppressMarkers: false,
+                preserveViewport: false,
+              }}
+            />
+          )}
+        </GoogleMap>
+
+        {/* Error overlay */}
+        {locationError && (
+          <div className="absolute bottom-2 left-2 right-2 bg-white/95 text-xs text-red-700 rounded-md px-2 py-2">
+            {locationError}
+          </div>
         )}
       </div>
 
-      {/* Confirm Button */}
+      {/* Show Route / Confirm button */}
       <div className="mt-4 text-center">
-        <button className="btn" onClick={() => nav('/mapConfirm')}>Confirm</button>
+        <button className="btn" onClick={handlePrimaryButtonClick}>
+          {routeReady ? "Confirm" : "Show Route"}
+        </button>
       </div>
 
       {/* Keyboard Overlay */}
       {showKeyboard && (
         <KeyboardOverlay
           onInsert={(key) => {
-            // BACKSPACE
             if (key === "BACKSPACE") {
               if (address.length === 0) return
-              setAddress(prev => prev.slice(0, -1))
-              return
+              setAddress((prev) => prev.slice(0, -1))
+            } else if (key === " ") {
+              setAddress((prev) => prev + " ")
+            } else {
+              setAddress((prev) => prev + key)
             }
 
-            // SPACE
-            if (key === " ") {
-              setAddress(prev => prev + " ")
-              return
-            }
-
-            // Normal character
-            setAddress(prev => prev + key)
+            // user changed the address → invalidate current route
+            setRouteReady(false)
+            setDirections(null)
+            setDestination(null)
           }}
-
           onClose={() => {
             if (address.trim() === "") setAddress("Please Enter Address")
             setShowKeyboard(false)

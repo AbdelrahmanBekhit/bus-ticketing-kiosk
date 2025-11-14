@@ -1,7 +1,8 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import fares from '../data/fares.json'
-import { useState, useEffect } from 'react'
-import Modal from '../components/Modal'
+import { useLocation, useNavigate } from "react-router-dom"
+import fares from "../data/fares.json"
+import { useState, useEffect } from "react"
+import Modal from "../components/Modal"
+import type { BusLegSummary } from "./BusLegSummary"
 
 export default function TicketSelect() {
   const nav = useNavigate()
@@ -12,13 +13,8 @@ export default function TicketSelect() {
   const [senior, setSenior] = useState(0)
   const [err, setErr] = useState(false)
 
-  // Retrieve route data if passed from previous page
-  const routeData = loc.state?.routeData || {
-    buses: [
-      { id: 1, route: 'Bowness - Forest Lawn', stop: 'Brentwood Station', time: '10 min' },
-      { id: 9, route: 'Brentwood - Heritage', stop: 'Albert Park', time: '35 min' },
-    ],
-  }
+  const routeData: BusLegSummary[] =
+    (loc.state?.routeData as BusLegSummary[] | undefined) ?? []
 
   const total =
     adult * fares.oneWay.adult +
@@ -26,35 +22,37 @@ export default function TicketSelect() {
     senior * fares.oneWay.senior
 
   const confirm = () => {
-  if (adult + youth + senior < 1) {
-    setErr(true)
-    return
+    if (adult + youth + senior < 1) {
+      setErr(true)
+      return
+    }
+
+    nav("/summary", {
+      state: {
+        items: { adult, youth, senior },
+        total,
+        routeData,
+      },
+    })
   }
-  nav("/summary", {
-    state: {
-      items: { adult, youth, senior },
-      total,
-      routeData, // pass route info forward
-    },
-  })
-}
 
-
-  // 🟢 Update router state for dynamic progress (33% → 60%)
   useEffect(() => {
     const hasTickets = adult + youth + senior > 0
     const newProgress = hasTickets ? 60 : 33
 
     if (loc.state?.ticketProgress !== newProgress) {
-      nav('.', {
+      nav(".", {
         replace: true,
         state: { ...loc.state, ticketProgress: newProgress },
       })
     }
-  }, [adult, youth, senior]) // intentionally minimal
+  }, [adult, youth, senior])
 
-  // 🧩 helper to safely increment/decrement with limits
-  const adjustTicket = (setter: (n: number) => void, current: number, delta: number) => {
+  const adjustTicket = (
+    setter: (n: number) => void,
+    current: number,
+    delta: number
+  ) => {
     const newValue = Math.min(10, Math.max(0, current + delta))
     setter(newValue)
   }
@@ -62,35 +60,76 @@ export default function TicketSelect() {
   return (
     <div className="space-y-4">
       {/* ===== Bus Summary Section ===== */}
-      <div className="card space-y-2">
-        <h3 className="text-center font-semibold text-gray-800">
-          {routeData.buses.length} Buses Selected
+      <div className="card space-y-3">
+        <h3 className="text-center font-semibold text-[20px] text-gray-900">
+          {routeData.length > 0
+            ? `${routeData.length} Buses Selected`
+            : "No route selected"}
         </h3>
 
-        <div className="flex flex-col gap-2">
-          {routeData.buses.map((bus: any) => (
-            <div
-              key={bus.id}
-              className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-2"
-            >
-              <div>
-                <p className="font-semibold text-gray-800">
-                  {bus.id} {bus.route}
-                </p>
-                <p className="text-sm text-gray-500">→ {bus.stop}</p>
-              </div>
-              <span className="text-orange-500 font-semibold">{bus.time}</span>
-            </div>
-          ))}
-        </div>
+        {routeData.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {routeData.map((bus, idx) => {
+              const routeNumber =
+                bus.routeShortName ?? String(idx + 1)
+
+              const routeName =
+                bus.routeLongName ??
+                (bus.routeShortName ? `Route ${bus.routeShortName}` : "Bus route")
+
+              const stopLabel =
+                bus.toStop ||
+                bus.fromStop ||
+                "Stop not available"
+
+              const timeLabel =
+                bus.travelMinutes != null
+                  ? `${bus.travelMinutes} min`
+                  : bus.departureTimeText && bus.arrivalTimeText
+                  ? `${bus.departureTimeText} – ${bus.arrivalTimeText}`
+                  : bus.departureTimeText || bus.arrivalTimeText || ""
+
+              return (
+                <div
+                  key={idx}
+                  className="flex items-center gap-4 bg-white rounded-2xl px-4 py-3 shadow-[0_4px_12px_rgba(0,0,0,0.06)]"
+                >
+                  {/* Left: route number */}
+                  <div className="flex-shrink-0 w-6 text-lg font-bold text-orange-500 text-center">
+                    {routeNumber}
+                  </div>
+
+                  {/* Middle: route name + stop */}
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {routeName}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {`→ ${stopLabel}`}
+                    </p>
+                  </div>
+
+                  {/* Right: time */}
+                  {timeLabel && (
+                    <div className="flex-shrink-0">
+                      <span className="text-sm font-semibold text-orange-500 whitespace-nowrap">
+                        {timeLabel}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* ===== Ticket Selection ===== */}
       <div className="card space-y-3">
         {[
-          { label: 'Adult ticket (18–64)', v: adult, set: setAdult },
-          { label: 'Youth ticket (10–18)', v: youth, set: setYouth },
-          { label: 'Senior ticket (64+)', v: senior, set: setSenior },
+          { label: "Adult ticket (18–64)", v: adult, set: setAdult },
+          { label: "Youth ticket (10–18)", v: youth, set: setYouth },
+          { label: "Senior ticket (64+)", v: senior, set: setSenior },
         ].map((row) => {
           const isMax = row.v >= 10
           return (
@@ -109,8 +148,8 @@ export default function TicketSelect() {
                   disabled={isMax}
                   className={`btn transition ${
                     isMax
-                      ? '!bg-gray-300 !text-gray-600 !border-gray-300 !cursor-not-allowed hover:!bg-gray-300 active:!bg-gray-300'
-                      : ''
+                      ? "!bg-gray-300 !text-gray-600 !border-gray-300 !cursor-not-allowed hover:!bg-gray-300 active:!bg-gray-300"
+                      : ""
                   }`}
                 >
                   +
