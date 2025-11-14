@@ -67,7 +67,11 @@ export default function App() {
   if (path.startsWith('/destination')) progress = 0
   else if (path.startsWith('/map')) progress = 0
   else if (path.startsWith('/mapConfirm')) progress = 0
-  else if (path.startsWith('/tickets')) progress = 33
+  else if (path.startsWith('/tickets')) {
+    const ticketProgress = location.state?.ticketProgress
+    progress = typeof ticketProgress === 'number' ? ticketProgress : 33
+  }
+
   else if (path.startsWith('/summary')) progress = 80
   else if (path.startsWith('/done')) progress = 100
 
