@@ -10,7 +10,7 @@ export default function MapConfirm(){
       <div className="rounded-2xl overflow-hidden border">
         <img src="/assets/map-sample.png" alt="Map" className="w-full h-64 object-cover"/>
       </div>
-      <div className="mt-4 text-center"><button className="btn" onClick={()=> nav('/routes', { state: { address: addr } })}>Confirm</button></div>
+      <div className="mt-4 text-center"><button className="btn" onClick={()=> nav('/tickets', { state: { address: addr } })}>Confirm</button></div>
     </div>
   )
 }

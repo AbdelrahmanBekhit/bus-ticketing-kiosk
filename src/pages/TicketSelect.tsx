@@ -1,45 +1,112 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import fares from '../data/fares.json'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Modal from '../components/Modal'
 
-export default function TicketSelect(){
+export default function TicketSelect() {
   const nav = useNavigate()
-  const [adult, setAdult] = useState(1)
+  const loc = useLocation()
+
+  const [adult, setAdult] = useState(0)
   const [youth, setYouth] = useState(0)
   const [senior, setSenior] = useState(0)
   const [err, setErr] = useState(false)
 
-  const total = adult*fares.oneWay.adult + youth*fares.oneWay.youth + senior*fares.oneWay.senior
+  // Retrieve route data if passed from previous page
+  const routeData = loc.state?.routeData || {
+    buses: [
+      { id: 1, route: 'Bowness - Forest Lawn', stop: 'Brentwood Station', time: '10 min' },
+      { id: 9, route: 'Brentwood - Heritage', stop: 'Albert Park', time: '35 min' },
+    ],
+  }
+
+  const total =
+    adult * fares.oneWay.adult +
+    youth * fares.oneWay.youth +
+    senior * fares.oneWay.senior
 
   const confirm = () => {
-    if(adult+youth+senior < 1){ setErr(true); return }
+    if (adult + youth + senior < 1) {
+      setErr(true)
+      return
+    }
     nav('/summary', { state: { items: { adult, youth, senior }, total } })
   }
 
+  // 🟢 Update router state for dynamic progress (33% → 60%)
+  useEffect(() => {
+    const hasTickets = adult + youth + senior > 0
+    nav('.', {
+      replace: true,
+      state: { ...loc.state, ticketProgress: hasTickets ? 60 : 33 },
+    })
+  }, [adult, youth, senior, nav, loc.state])
+
   return (
-    <div>
+    <div className="space-y-4">
+      {/* ===== Bus Summary Section ===== */}
+      <div className="card space-y-2">
+        <h3 className="text-center font-semibold text-gray-800">
+          {routeData.buses.length} Buses Selected
+        </h3>
+
+        <div className="flex flex-col gap-2">
+          {routeData.buses.map((bus: any) => (
+            <div
+              key={bus.id}
+              className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-2"
+            >
+              <div>
+                <p className="font-semibold text-gray-800">
+                  {bus.id} {bus.route}
+                </p>
+                <p className="text-sm text-gray-500">→ {bus.stop}</p>
+              </div>
+              <span className="text-orange-500 font-semibold">{bus.time}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ===== Ticket Selection ===== */}
       <div className="card space-y-3">
         {[
-          {label: 'Adult ticket (18-64)', v: adult, set: setAdult},
-          {label: 'Youth ticket (10-18)', v: youth, set: setYouth},
-          {label: 'Senior ticket (64+)', v: senior, set: setSenior}
-        ].map(row=> (
+          { label: 'Adult ticket (18–64)', v: adult, set: setAdult },
+          { label: 'Youth ticket (10–18)', v: youth, set: setYouth },
+          { label: 'Senior ticket (64+)', v: senior, set: setSenior },
+        ].map((row) => (
           <div key={row.label} className="flex items-center justify-between">
             <div>{row.label}</div>
             <div className="flex items-center gap-3">
-              <button className="btn-secondary" onClick={()=> row.set(Math.max(0,row.v-1))}>-</button>
+              <button
+                className="btn-secondary"
+                onClick={() => row.set(Math.max(0, row.v - 1))}
+              >
+                –
+              </button>
               <div className="w-8 text-center font-semibold">{row.v}</div>
-              <button className="btn" onClick={()=> row.set(row.v+1)}>+</button>
+              <button className="btn" onClick={() => row.set(row.v + 1)}>
+                +
+              </button>
             </div>
           </div>
         ))}
       </div>
-      <div className="mt-4 text-center"><button className="btn" onClick={confirm}>Confirm</button></div>
-      <Modal open={err} onClose={()=> setErr(false)}>
+
+      {/* ===== Confirm Button ===== */}
+      <div className="mt-4 text-center">
+        <button className="btn" onClick={confirm}>
+          Confirm
+        </button>
+      </div>
+
+      {/* ===== Error Modal ===== */}
+      <Modal open={err} onClose={() => setErr(false)}>
         <div className="text-center space-y-3">
           <p>Please select at least one ticket to proceed.</p>
-          <button className="btn" onClick={()=> setErr(false)}>OK</button>
+          <button className="btn" onClick={() => setErr(false)}>
+            OK
+          </button>
         </div>
       </Modal>
     </div>
