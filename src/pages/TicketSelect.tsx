@@ -35,12 +35,18 @@ export default function TicketSelect() {
 
   // 🟢 Update router state for dynamic progress (33% → 60%)
   useEffect(() => {
-    const hasTickets = adult + youth + senior > 0
+  const hasTickets = adult + youth + senior > 0
+  const newProgress = hasTickets ? 60 : 33
+
+  // Only update if progress changed
+  if (loc.state?.ticketProgress !== newProgress) {
     nav('.', {
       replace: true,
-      state: { ...loc.state, ticketProgress: hasTickets ? 60 : 33 },
+      state: { ...loc.state, ticketProgress: newProgress },
     })
-  }, [adult, youth, senior, nav, loc.state])
+  }
+}, [adult, youth, senior])
+
 
   return (
     <div className="space-y-4">
