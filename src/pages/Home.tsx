@@ -28,7 +28,7 @@ export default function Home() {
 
         {/* Monthly Pass */}
         <button
-          onClick={() => nav('/tickets')}
+          onClick={() => nav('/monthlyPass')}
           className="bg-[#f28c28] text-white font-semibold text-lg py-5 rounded-md shadow-md
                      hover:brightness-110 active:bg-[#9ACD32] active:text-black
                      transition-all duration-150"
