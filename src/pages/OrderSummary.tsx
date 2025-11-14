@@ -6,6 +6,7 @@ export default function OrderSummary(){
   const nav = useNavigate()
   const loc = useLocation() as any
   const items = loc.state?.items || { adult:1, youth:0, senior:0 }
+  const { adult, youth, senior } = items
 
   const subtotal = items.adult*fares.oneWay.adult + items.youth*fares.oneWay.youth + items.senior*fares.oneWay.senior
   const tax = subtotal * fares.taxRate
@@ -28,7 +29,21 @@ export default function OrderSummary(){
         </div>
       </div>
       <div className="text-center">
-        <button className="btn" onClick={()=> nav('/done', { state: { total } })}>Tap to Pay</button>
+       <button
+  className="btn"
+  onClick={() =>
+    nav("/done", {
+      state: {
+        total,
+        items: { adult, youth, senior },
+        routeData: loc.state?.routeData, // keep this consistent
+      },
+    })
+  }
+>
+  Tap to Pay
+</button>
+
       </div>
     </div>
   )

@@ -26,12 +26,19 @@ export default function TicketSelect() {
     senior * fares.oneWay.senior
 
   const confirm = () => {
-    if (adult + youth + senior < 1) {
-      setErr(true)
-      return
-    }
-    nav('/summary', { state: { items: { adult, youth, senior }, total } })
+  if (adult + youth + senior < 1) {
+    setErr(true)
+    return
   }
+  nav("/summary", {
+    state: {
+      items: { adult, youth, senior },
+      total,
+      routeData, // pass route info forward
+    },
+  })
+}
+
 
   // 🟢 Update router state for dynamic progress (33% → 60%)
   useEffect(() => {
