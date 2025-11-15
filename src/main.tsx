@@ -7,7 +7,6 @@ import IdleScreen1 from './pages/IdleScreen1'
 import IdleScreen2 from './pages/IdleScreen2'
 import Home from './pages/Home'
 import Destination from './pages/Destination'
-import MapConfirm from './pages/MapConfirm'
 import RouteSelect from './pages/RouteSelect'
 import TicketSelect from './pages/TicketSelect'
 import OrderSummary from './pages/OrderSummary'
@@ -30,7 +29,6 @@ const router = createBrowserRouter([
       { path: 'home', element: <Home /> },
       { path: 'destination', element: <Destination /> },
       { path: 'map', element: <Map /> },
-      { path: 'mapConfirm', element: <MapConfirm /> },
       { path: 'routes', element: <RouteSelect /> },
       { path: 'tickets', element: <TicketSelect /> },
       { path: 'summary', element: <OrderSummary /> },
