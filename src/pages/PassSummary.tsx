@@ -1,6 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom"
 import fares from "../data/fares.json"
 import { formatCurrency } from "../i18n/strings"
+import { useState } from "react"
+import KeyboardOverlay from "../components/KeyboardOverlay"
 
 export default function PassSummary() {
   const nav = useNavigate()
@@ -17,17 +19,25 @@ export default function PassSummary() {
   const total = subtotal + tax
 
   const confirm = () => {
-    nav("/done", { state: { type: "monthly", items, total } })
+    nav("/completed", { state: { type: "monthly", items, total } })
   }
 
+  const [discount, setDiscount] = useState("")
+  const [showKeyboard, setShowKeyboard] = useState(false)
+
   return (
-    <div className="space-y-6 text-center">
+    <div
+      className={`space-y-6 text-center transition-all duration-300 ${
+        showKeyboard ? "pb-56" : "pb-0"
+      }`}
+    >
+
       {/* ====== Summary Card ====== */}
       <div className="card text-left space-y-4 max-w-sm mx-auto">
         <h3 className="font-semibold text-lg text-gray-800">Order summary:</h3>
 
-        <div className="flex items-center gap-3">
-          <img src="/assets/pass-icon.png" alt="Pass" className="w-6 h-6" />
+        <div className="flex items-center gap-1.5">
+          <img src="/assets/pass-icon.png" alt="Pass" className="w-8 h-8" />
           <span className="font-medium text-gray-700">Monthly Pass Summary</span>
         </div>
 
@@ -73,14 +83,13 @@ export default function PassSummary() {
       </div>
 
       {/* ====== Discount Input ====== */}
-      <div className="flex justify-center">
-        <input
-          type="text"
-          placeholder="Discount Code"
-          className="border border-gray-300 rounded-full px-4 py-2 w-64 text-center text-gray-600 bg-gray-100 cursor-not-allowed"
-          disabled
-        />
-      </div>
+      <button onClick={() => { 
+        if (discount === "Discount Code") setDiscount("")
+        setShowKeyboard(true)
+      }} 
+      className="border border-gray-300 rounded-full px-4 py-2 w-64 text-center text-gray-600 bg-gray-100"> 
+        <span>{discount === "" ? "Discount Code" : discount}</span>
+      </button>
 
       {/* ====== Payment Button ====== */}
       <p className="text-gray-700">Please tap below to complete your payment</p>
@@ -88,6 +97,34 @@ export default function PassSummary() {
       <button className="btn" onClick={confirm}>
         Tap to Pay
       </button>
+
+      {/* ====== Keyboard Overlay ====== */}
+      {showKeyboard && (
+              <KeyboardOverlay
+                onInsert={(key) => {
+                  // BACKSPACE
+                  if (key === "BACKSPACE") {
+                    if (discount.length === 0) return
+                    setDiscount(prev => prev.slice(0, -1))
+                    return
+                  }
+      
+                  // SPACE
+                  if (key === " ") {
+                    setDiscount(prev => prev + " ")
+                    return
+                  }
+      
+                  // Normal character
+                  setDiscount(prev => prev + key)
+                }}
+      
+                onClose={() => {
+                  if (discount.trim() === "") setDiscount("Discount Code")
+                  setShowKeyboard(false)
+                }}
+              />
+            )}
     </div>
   )
 }

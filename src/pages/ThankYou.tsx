@@ -8,8 +8,7 @@ export default function ThankYou() {
   const items = loc.state?.items ?? { adult: 0, youth: 0, senior: 0 }
 
   // Choose which QR code to show
-  let qrSrc = "/assets/qr.png" // default fallback
-  console.log(items)
+  let qrSrc = "/assets/qr-adult.png" // default fallback
 
   if (items.adult > 0 && items.senior === 0 && items.youth === 0)
     qrSrc = "/assets/qr-adult.png"

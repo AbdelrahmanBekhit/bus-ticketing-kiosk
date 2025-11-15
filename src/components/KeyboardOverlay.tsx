@@ -73,7 +73,7 @@ export default function KeyboardOverlay({
       {/* background dimmer */}
       <div
         onClick={handleClose}
-        className={`absolute inset-0 bg-black/20 transition-opacity duration-300 z-40 ${
+        className={`absolute inset-0 bg-black/0 transition-opacity duration-300 z-40 ${
           visible ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       />

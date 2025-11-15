@@ -17,6 +17,8 @@ import HelpCenter from './pages/HelpCenter'
 import Map from './pages/Map'
 import MonthlyPass from './pages/MonthlyPass'
 import PassSummary from './pages/PassSummary'
+import ThankYouPass from './pages/ThankYouPass'
+
 
 const router = createBrowserRouter([
   {
@@ -36,7 +38,8 @@ const router = createBrowserRouter([
       { path: 'language', element: <LanguageSelect /> },
       { path: 'help', element: <HelpCenter /> },
       { path: 'monthlyPass', element: <MonthlyPass /> },
-      { path: 'passsummary', element: <PassSummary />}
+      { path: 'passsummary', element: <PassSummary />},
+      { path: 'completed', element: <ThankYouPass /> }
     ],
   },
 ])
