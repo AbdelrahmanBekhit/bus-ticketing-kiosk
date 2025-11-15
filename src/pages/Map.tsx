@@ -11,7 +11,6 @@ import KeyboardOverlay from "../components/KeyboardOverlay"
 import { extractBusLegs } from "./BusLegSummary"
 import type { BusLegSummary } from "./BusLegSummary"
 
-
 type LatLngLiteral = { lat: number; lng: number }
 
 const mapContainerStyle = {
@@ -75,24 +74,50 @@ export default function Map() {
     )
   }, [])
 
+  // Map click → choose destination
   const handleMapClick = (e: google.maps.MapMouseEvent) => {
     if (!e.latLng) return
-    const point = {
+    const point: LatLngLiteral = {
       lat: e.latLng.lat(),
       lng: e.latLng.lng(),
     }
+
     setSelectedPoint(point)
+    setDestination(point)
+    setCenter(point)
+
+    // Invalidate any existing route when user changes destination
+    setRouteReady(false)
+    setDirections(null)
+
+    // Optional: reflect that the user selected via map
+    if (address === "Please Enter Address" || address.startsWith("Selected on")) {
+      setAddress("Selected on map")
+    }
   }
 
-  // 1) Show Route: geocode address, then request route from userLocation → destination
+  // 1) Show Route:
+  // - If user clicked on map → route from userLocation → selectedPoint
+  // - Else, fall back to geocoding address text
   const handleShowRoute = () => {
-    const trimmed = address.trim()
-    if (trimmed === "" || trimmed === "Please Enter Address") return
-
     if (!userLocation) {
       setLocationError("User location not available. Allow location and retry.")
       return
     }
+
+    // Prefer map-click destination if present
+    if (selectedPoint) {
+      setDestination(selectedPoint)
+      setDirections(null)
+      setCenter(selectedPoint)
+      setRouteReady(false)
+      setRequestRoute(true)
+      return
+    }
+
+    // No map selection → use address
+    const trimmed = address.trim()
+    if (trimmed === "" || trimmed === "Please Enter Address") return
 
     const geocoder = new google.maps.Geocoder()
 
@@ -109,6 +134,7 @@ export default function Map() {
       }
 
       setDestination(dest)
+      setSelectedPoint(dest)
       setDirections(null)
       setCenter(dest)
       setRouteReady(false)
@@ -183,7 +209,7 @@ export default function Map() {
             />
           )}
 
-          {/* Selected point marker (from map click) */}
+          {/* Selected / destination point marker (from map click or geocode) */}
           {selectedPoint && (
             <Marker
               position={selectedPoint}
@@ -194,21 +220,6 @@ export default function Map() {
                 fillOpacity: 1,
                 strokeColor: "#ffffff",
                 strokeWeight: 2,
-              }}
-            />
-          )}
-
-          {/* Destination marker (geocoded from address) */}
-          {destination && (
-            <Marker
-              position={destination}
-              icon={{
-                path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-                scale: 5,
-                fillColor: "#3b82f6",
-                fillOpacity: 1,
-                strokeColor: "#ffffff",
-                strokeWeight: 1,
               }}
             />
           )}
@@ -286,6 +297,7 @@ export default function Map() {
             setRouteReady(false)
             setDirections(null)
             setDestination(null)
+            setSelectedPoint(null)
           }}
           onClose={() => {
             if (address.trim() === "") setAddress("Please Enter Address")
