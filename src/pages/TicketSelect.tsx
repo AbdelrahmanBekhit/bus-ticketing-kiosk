@@ -127,8 +127,8 @@ export default function TicketSelect() {
       {/* ===== Ticket Selection ===== */}
       <div className="card space-y-3">
         {[
-          { label: "Adult ticket (18–64)", v: adult, set: setAdult },
-          { label: "Youth ticket (10–18)", v: youth, set: setYouth },
+          { label: "Adult ticket (18-64)", v: adult, set: setAdult },
+          { label: "Youth ticket (10-18)", v: youth, set: setYouth },
           { label: "Senior ticket (64+)", v: senior, set: setSenior },
         ].map((row) => {
           const isMax = row.v >= 10

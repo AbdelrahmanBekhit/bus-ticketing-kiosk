@@ -14,7 +14,10 @@ module.exports = {
       },
       borderRadius: {
         kiosk: "28px"
-      }
+      },
+      fontFamily: {
+        josefin: ["Josefin Sans"],
+      },
     },
   },
   plugins: [],
