@@ -1,9 +1,9 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import Header from './components/Header'
 import BottomBar from './components/BottomBar'
 import Modal from './components/Modal'
-import { STRINGS, type Lang } from './i18n/strings'
+import { type Lang } from './i18n/strings'
 
 // Language context
 const LangCtx = createContext<{lang: Lang, setLang: (l: Lang)=>void}>({lang: 'en', setLang: ()=>{}})
@@ -79,7 +79,7 @@ export default function App() {
   return (
     <LangCtx.Provider value={value}>
       <div className="kiosk-card select-none relative">
-        <Header title="GoBus" />
+        <Header/>
 
         {/* Remove padding for idle screens */}
         <div className={isIdle ? "relative h-full p-0" : "relative p-4 min-h-[400px]"}>
