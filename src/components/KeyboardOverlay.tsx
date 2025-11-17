@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, type MouseEvent, type TouchEvent } from "react"
 import { createPortal } from "react-dom"
 
 export default function KeyboardOverlay({
@@ -29,6 +29,7 @@ export default function KeyboardOverlay({
     }
 
     if (k === "⌫") {
+      // this will now be called repeatedly while key is held
       onInsert("BACKSPACE")
       return
     }
@@ -179,9 +180,47 @@ function KeyButton({
       ? k.toUpperCase()
       : k
 
+  const repeatRef = useRef<number | null>(null)
+
+  const stopRepeat = () => {
+    if (repeatRef.current !== null) {
+      window.clearInterval(repeatRef.current)
+      repeatRef.current = null
+    }
+  }
+
+  const startRepeat = () => {
+    if (k === "⌫") {
+      // fire once immediately
+      onPress(k)
+
+      // loop so if user keeps holding on the button
+      repeatRef.current = window.setInterval(() => {
+        onPress(k)
+      }, 120)
+    } else {
+      onPress(k)
+    }
+  }
+
+  const handleMouseDown = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    startRepeat()
+  }
+
+  const handleTouchStart = (e: TouchEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    startRepeat()
+  }
+
   return (
     <button
-      onClick={() => onPress(k)}
+      type="button"
+      onMouseDown={handleMouseDown}
+      onMouseUp={stopRepeat}
+      onMouseLeave={stopRepeat}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={stopRepeat}
       className={`min-w-[34px] px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-800 font-medium hover:bg-gray-100 active:bg-orange-400 active:text-white transition ${
         k === "⇧" && shift ? "bg-gray-300" : ""
       }`}

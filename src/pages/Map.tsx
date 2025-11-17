@@ -27,7 +27,7 @@ export default function Map() {
   const nav = useNavigate()
 
   const [showKeyboard, setShowKeyboard] = useState(false)
-  const [address, setAddress] = useState("Please Enter Address")
+  const [address, setAddress] = useState("")
 
   const [center, setCenter] = useState<LatLngLiteral>(DEFAULT_CENTER)
   const [userLocation, setUserLocation] = useState<LatLngLiteral | null>(null)
@@ -41,7 +41,7 @@ export default function Map() {
 
   const [locationError, setLocationError] = useState<string | null>(null)
 
-  const [routeReady, setRouteReady] = useState(false) // route is valid & shown
+  const [routeReady, setRouteReady] = useState(false)
 
   const [routeData, setBusLegs] = useState<BusLegSummary[]>([])
 
@@ -90,13 +90,11 @@ export default function Map() {
     setRouteReady(false)
     setDirections(null)
 
-    // Optional: reflect that the user selected via map
-    if (address === "Please Enter Address" || address.startsWith("Selected on")) {
+    if (address === "" || address.startsWith("Selected on")) {
       setAddress("Selected on map")
     }
   }
 
-  // 1) Show Route:
   // - If user clicked on map → route from userLocation → selectedPoint
   // - Else, fall back to geocoding address text
   const handleShowRoute = () => {
@@ -117,7 +115,7 @@ export default function Map() {
 
     // No map selection → use address
     const trimmed = address.trim()
-    if (trimmed === "" || trimmed === "Please Enter Address") return
+    if (trimmed === "") return
 
     const geocoder = new google.maps.Geocoder()
 
@@ -142,7 +140,6 @@ export default function Map() {
     })
   }
 
-  // 2) Button click handler: Show Route (if not ready) vs Confirm (if ready)
   const handlePrimaryButtonClick = () => {
     if (!routeReady) {
       // First phase: fetch and show route
@@ -150,9 +147,7 @@ export default function Map() {
     } else {
       // Second phase: route already shown and valid → confirm + navigate
       nav("/tickets", {
-        state: {
-          routeData,
-        },
+        state: { routeData },
       })
     }
   }
@@ -168,16 +163,33 @@ export default function Map() {
   return (
     <div className="flex flex-col items-center gap-4 relative h-full bg-white">
       {/* Address Input */}
-      <button
-        onClick={() => {
-          if (address === "Please Enter Address") setAddress("")
-          setShowKeyboard(true)
-        }}
-        className="flex items-center justify-between w-[90%] border border-gray-400 rounded-full px-4 py-2 text-gray-600 text-lg shadow-sm hover:shadow-md transition mt-4"
-      >
-        <span>{address === "" ? "Please Enter Address" : address}</span>
-        <span className="text-xl font-semibold">{">"}</span>
-      </button>
+      <div className="w-[90%] mt-4">
+        <div className="flex items-center justify-between border border-gray-400 rounded-full px-4 py-2 text-lg shadow-sm hover:shadow-md transition bg-white">
+          <input
+            type="text"
+            className="flex-1 bg-transparent outline-none text-gray-600 placeholder:text-gray-400"
+            value={address}
+            placeholder="Please Enter Address"
+            onChange={(e) => {
+              const v = e.target.value
+              setAddress(v)
+
+              setRouteReady(false)
+              setDirections(null)
+              setDestination(null)
+              setSelectedPoint(null)
+            }}
+            onFocus={() => setShowKeyboard(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                handlePrimaryButtonClick()
+              }
+            }}
+          />
+          <span className="text-xl font-semibold text-gray-500">{">"}</span>
+        </div>
+      </div>
 
       {/* Map Area */}
       <div className="relative w-[90%] h-[300px] border rounded-2xl overflow-hidden">
@@ -240,9 +252,8 @@ export default function Map() {
                   setDirections(result)
                   const legs = extractBusLegs(result)
                   setBusLegs(legs)
-                  setRouteReady(true) // route is valid → button becomes "Confirm"
+                  setRouteReady(true)
                 } else {
-                  console.warn("Directions request failed:", status)
                   setLocationError(
                     "Could not fetch route. Try again or check address."
                   )
@@ -265,7 +276,6 @@ export default function Map() {
           )}
         </GoogleMap>
 
-        {/* Error overlay */}
         {locationError && (
           <div className="absolute bottom-2 left-2 right-2 bg-white/95 text-xs text-red-700 rounded-md px-2 py-2">
             {locationError}
@@ -285,22 +295,19 @@ export default function Map() {
         <KeyboardOverlay
           onInsert={(key) => {
             if (key === "BACKSPACE") {
-              if (address.length === 0) return
-              setAddress((prev) => prev.slice(0, -1))
+              setAddress(prev => (prev.length > 0 ? prev.slice(0, -1) : prev))
             } else if (key === " ") {
-              setAddress((prev) => prev + " ")
+              setAddress(prev => prev + " ")
             } else {
-              setAddress((prev) => prev + key)
+              setAddress(prev => prev + key)
             }
 
-            // user changed the address → invalidate current route
             setRouteReady(false)
             setDirections(null)
             setDestination(null)
             setSelectedPoint(null)
           }}
           onClose={() => {
-            if (address.trim() === "") setAddress("Please Enter Address")
             setShowKeyboard(false)
           }}
         />
