@@ -15,8 +15,10 @@ export default function PassSummary() {
     adult * fares.monthly.adult +
     youth * fares.monthly.youth +
     senior * fares.monthly.senior
+  const [discountValue, setDiscountValue] = useState(0)
   const tax = subtotal * fares.taxRate
-  const total = subtotal + tax
+  const discountedAmount = subtotal * discountValue
+  const total = subtotal + tax - discountedAmount
 
   const confirm = () => {
     nav("/completed", { state: { type: "monthly", items, total } })
@@ -24,6 +26,18 @@ export default function PassSummary() {
 
   const [discount, setDiscount] = useState("")
   const [showKeyboard, setShowKeyboard] = useState(false)
+
+  const applyDiscount = () => {
+  const code = discount.trim().toLowerCase()
+
+  if (code === "save10") {
+      setDiscountValue(0.10)       // 10 percent off
+    } else if (code === "save20") {
+      setDiscountValue(0.20)       // 20 percent off
+    } else {
+      setDiscountValue(0)          // invalid or empty code
+    }
+  }
 
   return (
     <div
@@ -75,6 +89,12 @@ export default function PassSummary() {
             <span>Taxes & Other Fees</span>
             <span>{formatCurrency(tax)}</span>
           </div>
+          {discountValue > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>Discount</span>
+              <span>- {formatCurrency(discountedAmount)}</span>
+            </div>
+          )}
           <div className="flex justify-between font-bold text-lg">
             <span>Total</span>
             <span>{formatCurrency(total)}</span>
@@ -121,6 +141,7 @@ export default function PassSummary() {
       
                 onClose={() => {
                   if (discount.trim() === "") setDiscount("Discount Code")
+                  applyDiscount()
                   setShowKeyboard(false)
                 }}
               />

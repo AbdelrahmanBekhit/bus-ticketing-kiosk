@@ -1,10 +1,12 @@
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
 import Modal from "../components/Modal"
 import fares from "../data/fares.json"
 
 export default function MonthlyPass() {
   const nav = useNavigate()
+  const loc = useLocation()
+
   const [adult, setAdult] = useState(0)
   const [youth, setYouth] = useState(0)
   const [senior, setSenior] = useState(0)
@@ -25,7 +27,25 @@ export default function MonthlyPass() {
     })
   }
 
-  const adjustTicket = (setter: (n: number) => void, current: number, delta: number) => {
+  useEffect(() => {
+    const hasTickets = adult + youth + senior > 0
+    const newProgress = hasTickets ? 60 : 33
+
+    const current = loc.state?.ticketProgress
+
+    if (current !== newProgress) {
+      nav(".", {
+        replace: true,
+        state: { ...(loc.state || {}), ticketProgress: newProgress },
+      })
+    }
+  }, [adult, youth, senior, loc.state, nav])
+
+  const adjustTicket = (
+    setter: (n: number) => void,
+    current: number,
+    delta: number
+  ) => {
     const newValue = Math.min(10, Math.max(0, current + delta))
     setter(newValue)
   }
@@ -33,14 +53,14 @@ export default function MonthlyPass() {
   return (
     <div className="space-y-6 text-center">
       <h2 className="text-xl font-semibold text-gray-800">
-        How many passes do you need
+        How many passes do you need?
       </h2>
 
       <div className="card space-y-3">
         {[
-          { label: 'Adult pass (18–64)', v: adult, set: setAdult },
-          { label: 'Youth pass (10–18)', v: youth, set: setYouth },
-          { label: 'Senior pass (64+)', v: senior, set: setSenior },
+          { label: "Adult pass (18–64)", v: adult, set: setAdult },
+          { label: "Youth pass (10–18)", v: youth, set: setYouth },
+          { label: "Senior pass (64+)", v: senior, set: setSenior },
         ].map((row) => {
           const isMax = row.v >= 10
           return (
@@ -59,8 +79,8 @@ export default function MonthlyPass() {
                   disabled={isMax}
                   className={`btn transition ${
                     isMax
-                      ? '!bg-gray-300 !text-gray-600 !border-gray-300 !cursor-not-allowed hover:!bg-gray-300 active:!bg-gray-300'
-                      : ''
+                      ? "!bg-gray-300 !text-gray-600 !border-gray-300 !cursor-not-allowed hover:!bg-gray-300 active:!bg-gray-300"
+                      : ""
                   }`}
                 >
                   +

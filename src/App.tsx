@@ -57,7 +57,10 @@ export default function App() {
     '/mapConfirm',
     '/tickets',
     '/summary',
-    '/done'
+    '/done',
+    '/monthlyPass',
+    '/passsummary',
+    '/completed',
   ].some(prefix => path.startsWith(prefix))
 
   // Default progress
@@ -72,7 +75,14 @@ export default function App() {
     progress = typeof ticketProgress === 'number' ? ticketProgress : 33
   }
 
+  else if (path.startsWith('/monthlyPass')) {
+    const ticketProgress = location.state?.ticketProgress
+    progress = typeof ticketProgress === 'number' ? ticketProgress : 33
+  }
+
+  else if (path.startsWith('/passsummary')) progress = 80
   else if (path.startsWith('/summary')) progress = 80
+  else if (path.startsWith('/completed')) progress = 100
   else if (path.startsWith('/done')) progress = 100
 
 
