@@ -37,9 +37,8 @@ export default function Home() {
         </button>
       </div>
 
-      {/* View Routes */}
       <button
-        onClick={() => nav('/routes')}
+        onClick={() => nav('/map', { state: { viewRoutes: true } })}
         className="mt-8 px-12 py-3 border border-gray-300 rounded-full
                    text-black font-medium text-lg shadow-sm
                    hover:bg-gray-100 active:scale-95 transition-all"

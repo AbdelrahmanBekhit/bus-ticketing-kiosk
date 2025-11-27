@@ -2,10 +2,14 @@ import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import Modal from "../components/Modal"
 import fares from "../data/fares.json"
+import { useLang } from "../App"
+import { STRINGS } from "../i18n/strings"
 
 export default function MonthlyPass() {
   const nav = useNavigate()
   const loc = useLocation()
+  const { lang } = useLang()
+  const t = STRINGS[lang]
 
   const [adult, setAdult] = useState(0)
   const [youth, setYouth] = useState(0)
@@ -53,7 +57,7 @@ export default function MonthlyPass() {
   return (
     <div className="space-y-6 text-center">
       <h2 className="text-xl font-semibold text-gray-800">
-        How many passes do you need?
+        {t.passesQuestion}
       </h2>
 
       <div className="card space-y-3">
@@ -77,11 +81,10 @@ export default function MonthlyPass() {
                 <button
                   onClick={() => adjustTicket(row.set, row.v, 1)}
                   disabled={isMax}
-                  className={`btn transition ${
-                    isMax
-                      ? "!bg-gray-300 !text-gray-600 !border-gray-300 !cursor-not-allowed hover:!bg-gray-300 active:!bg-gray-300"
-                      : ""
-                  }`}
+                  className={`btn transition ${isMax
+                    ? "!bg-gray-300 !text-gray-600 !border-gray-300 !cursor-not-allowed hover:!bg-gray-300 active:!bg-gray-300"
+                    : ""
+                    }`}
                 >
                   +
                 </button>
@@ -92,14 +95,14 @@ export default function MonthlyPass() {
       </div>
 
       <button className="btn mt-4" onClick={confirm}>
-        Confirm
+        {t.confirm}
       </button>
 
       <Modal open={err} onClose={() => setErr(false)}>
         <div className="text-center space-y-3">
-          <p>Please select at least one pass to proceed.</p>
+          <p>{t.pleaseSelectAtLeastOnePass}</p>
           <button className="btn" onClick={() => setErr(false)}>
-            OK
+            {t.ok}
           </button>
         </div>
       </Modal>

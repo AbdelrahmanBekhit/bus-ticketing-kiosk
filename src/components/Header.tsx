@@ -56,17 +56,30 @@ export default function Header({ subtitle: override }: { subtitle?: string }) {
     "/passsummary": "Monthly Pass",
   }
 
-  const autoSubtitle = subtitleMap[loc.pathname]
+  // Check if we're in viewRoutes mode
+  const isViewRoutes = (loc.state as any)?.viewRoutes === true
+
+  let autoSubtitle = subtitleMap[loc.pathname]
+
+  // Override subtitle if in viewRoutes mode and on map page
+  if (loc.pathname === "/map" && isViewRoutes) {
+    autoSubtitle = "View Routes"
+  }
+
   const subtitle = override ?? autoSubtitle
 
   const textShadow = { textShadow: "0px 1px 2px rgba(0,0,0,0.35)" }
 
+  // Special case for language page - show title instead of date/time
+  const isLanguagePage = loc.pathname === '/language'
+
   return (
-    <div 
-      className="header-bar flex justify-between items-center pl-3 pr-6 py-2"
-      style={{boxShadow: "0px 6px 12px rgba(0,0,0,0.28)",
-    }}>
-      {/* Left side: arrow + date + subtitle */}
+    <div
+      className="header-bar flex justify-between items-center pl-3 pr-6 py-3"
+      style={{
+        boxShadow: "0px 6px 12px rgba(0,0,0,0.28)",
+      }}>
+      {/* Left side: arrow + date/title + subtitle */}
       <div className="flex items-center gap-2">
         {showBack && (
           <button
@@ -91,16 +104,16 @@ export default function Header({ subtitle: override }: { subtitle?: string }) {
         )}
 
         <div className="flex flex-col leading-tight">
-          {/* Date */}
+          {/* Date or Page Title */}
           <div
             className="font-semibold text-[22px] text-white"
             style={textShadow}
           >
-            {dateStr}
+            {isLanguagePage ? 'Select Language' : dateStr}
           </div>
 
-          {/* Subtitle */}
-          {subtitle && (
+          {/* Subtitle - only show if not language page */}
+          {!isLanguagePage && subtitle && (
             <div
               className="mt-[2px] text-[16px] text-white"
               style={textShadow}
@@ -111,13 +124,15 @@ export default function Header({ subtitle: override }: { subtitle?: string }) {
         </div>
       </div>
 
-      {/* Right side: time */}
+      {/* Right side: time - only show if not language page
+      {!isLanguagePage && ( */}
       <div
         className="font-extrabold text-[32px] text-white pr-1"
         style={textShadow}
       >
         {time}
       </div>
+
     </div>
   )
 }

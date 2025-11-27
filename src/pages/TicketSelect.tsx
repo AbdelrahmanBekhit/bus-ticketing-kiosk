@@ -3,10 +3,14 @@ import fares from "../data/fares.json"
 import { useState, useEffect } from "react"
 import Modal from "../components/Modal"
 import type { BusLegSummary } from "./BusLegSummary"
+import { useLang } from "../App"
+import { STRINGS } from "../i18n/strings"
 
 export default function TicketSelect() {
   const nav = useNavigate()
   const loc = useLocation()
+  const { lang } = useLang()
+  const t = STRINGS[lang]
 
   const [adult, setAdult] = useState(0)
   const [youth, setYouth] = useState(0)
@@ -65,8 +69,8 @@ export default function TicketSelect() {
         <div className="card flex flex-col h-64">
           <h3 className="text-center font-semibold text-[20px] text-gray-900 mb-1">
             {routeData.length > 0
-              ? `${routeData.length} Buses Selected`
-              : "No route selected"}
+              ? `${routeData.length} ${t.busesSelected}`
+              : t.noRouteSelected}
           </h3>
 
           {routeData.length > 0 && (
@@ -81,18 +85,18 @@ export default function TicketSelect() {
                   const routeName =
                     bus.routeLongName ??
                     (bus.routeShortName
-                      ? `Route ${bus.routeShortName}`
-                      : "Bus route")
+                      ? `${t.route} ${bus.routeShortName}`
+                      : t.busRoute)
 
                   const stopLabel =
-                    bus.toStop || bus.fromStop || "Stop not available"
+                    bus.toStop || bus.fromStop || t.stopNotAvailable
 
                   const timeLabel =
                     bus.travelMinutes != null
                       ? `${bus.travelMinutes} min`
                       : bus.departureTimeText && bus.arrivalTimeText
-                      ? `${bus.departureTimeText} – ${bus.arrivalTimeText}`
-                      : bus.departureTimeText || bus.arrivalTimeText || ""
+                        ? `${bus.departureTimeText} – ${bus.arrivalTimeText}`
+                        : bus.departureTimeText || bus.arrivalTimeText || ""
 
                   return (
                     <div
@@ -136,9 +140,9 @@ export default function TicketSelect() {
         {/* ===== Ticket Selection ===== */}
         <div className="card space-y-3">
           {[
-            { label: "Adult ticket (18-64)", v: adult, set: setAdult },
-            { label: "Youth ticket (10-18)", v: youth, set: setYouth },
-            { label: "Senior ticket (64+)", v: senior, set: setSenior },
+            { label: t.adultTicket, v: adult, set: setAdult },
+            { label: t.youthTicket, v: youth, set: setYouth },
+            { label: t.seniorTicket, v: senior, set: setSenior },
           ].map((row) => {
             const isMax = row.v >= 10
             return (
@@ -155,11 +159,10 @@ export default function TicketSelect() {
                   <button
                     onClick={() => adjustTicket(row.set, row.v, 1)}
                     disabled={isMax}
-                    className={`btn transition ${
-                      isMax
+                    className={`btn transition ${isMax
                         ? "!bg-gray-300 !text-gray-600 !border-gray-300 !cursor-not-allowed hover:!bg-gray-300 active:!bg-gray-300"
                         : ""
-                    }`}
+                      }`}
                   >
                     +
                   </button>
@@ -173,16 +176,16 @@ export default function TicketSelect() {
       {/* ===== Confirm Button ===== */}
       <div className="mt-2 mb-4 text-center flex-shrink-0">
         <button className="btn" onClick={confirm}>
-          Confirm
+          {t.confirm}
         </button>
       </div>
 
       {/* ===== Error Modal ===== */}
       <Modal open={err} onClose={() => setErr(false)}>
         <div className="text-center space-y-3">
-          <p>Please select at least one ticket to proceed.</p>
+          <p>{t.pleaseSelectAtLeastOne}</p>
           <button className="btn" onClick={() => setErr(false)}>
-            OK
+            {t.ok}
           </button>
         </div>
       </Modal>

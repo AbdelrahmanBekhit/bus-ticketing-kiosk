@@ -1,8 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom"
+import { useLang } from "../App"
+import { STRINGS } from "../i18n/strings"
 
 export default function ThankYou() {
   const nav = useNavigate()
   const loc = useLocation() as any
+  const { lang } = useLang()
+  const t = STRINGS[lang]
 
   const total = loc.state?.total ?? 0
   const items = loc.state?.items ?? { adult: 0, youth: 0, senior: 0 }
@@ -28,18 +32,18 @@ export default function ThankYou() {
           (e.currentTarget as HTMLImageElement).src = "/assets/qr.png"
         }}
       />
-      <p className="text-gray-500 text-sm">Add to Wallet</p>
+      <p className="text-gray-500 text-sm">{t.addToWallet}</p>
 
-      <h1 className="text-3xl font-extrabold text-orange-600">Thank you</h1>
+      <h1 className="text-3xl font-extrabold text-orange-600">{t.thankYou}</h1>
 
       <p className="text-gray-800">
-        Your payment of ${total.toFixed(2)} was received.
+        {t.paymentReceived} ${total.toFixed(2)} {t.wasReceived}
       </p>
 
-      <p className="text-gray-700">Please collect your ticket below</p>
+      <p className="text-gray-700">{t.pleaseCollectTicket}</p>
 
       <button className="btn" onClick={() => nav("/")}>
-        Finish
+        {t.finish}
       </button>
     </div>
   )

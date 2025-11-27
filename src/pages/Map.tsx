@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import {
   GoogleMap,
   Marker,
@@ -10,6 +10,8 @@ import {
 import KeyboardOverlay from "../components/KeyboardOverlay"
 import { extractBusLegs } from "./BusLegSummary"
 import type { BusLegSummary } from "./BusLegSummary"
+import { useLang } from "../App"
+import { STRINGS } from "../i18n/strings"
 
 type LatLngLiteral = { lat: number; lng: number }
 
@@ -25,6 +27,8 @@ const DEFAULT_CENTER: LatLngLiteral = {
 
 export default function Map() {
   const nav = useNavigate()
+  const { lang } = useLang()
+  const t = STRINGS[lang]
 
   const [showKeyboard, setShowKeyboard] = useState(false)
   const [address, setAddress] = useState("")
@@ -91,7 +95,7 @@ export default function Map() {
     setDirections(null)
 
     if (address === "" || address.startsWith("Selected on")) {
-      setAddress("Selected on map")
+      setAddress(t.selectedOnMap)
     }
   }
 
@@ -140,15 +144,27 @@ export default function Map() {
     })
   }
 
+  const loc = useLocation() as any
+
   const handlePrimaryButtonClick = () => {
     if (!routeReady) {
       // First phase: fetch and show route
       handleShowRoute()
     } else {
       // Second phase: route already shown and valid → confirm + navigate
-      nav("/tickets", {
-        state: { routeData },
-      })
+      if (loc.state?.fromMonthlyPass) {
+        nav("/route-confirmation", {
+          state: { routeData },
+        })
+      } else if (loc.state?.viewRoutes) {
+        nav("/route-pricing", {
+          state: { routeData },
+        })
+      } else {
+        nav("/tickets", {
+          state: { routeData },
+        })
+      }
     }
   }
 
@@ -162,6 +178,15 @@ export default function Map() {
 
   return (
     <div className="flex flex-col items-center gap-4 relative h-full bg-white">
+      {/* Instructional text for view routes mode */}
+      {loc.state?.viewRoutes && !routeReady && (
+        <div className="w-[90%] mt-4">
+          <p className="text-center text-xl font-semibold text-gray-700">
+            {t.enterYourDestination}
+          </p>
+        </div>
+      )}
+
       {/* Address Input */}
       <div className="w-[90%] mt-4">
         <div className="flex items-center justify-between border border-gray-400 rounded-full px-4 py-2 text-lg shadow-sm hover:shadow-md transition bg-white">
@@ -169,7 +194,7 @@ export default function Map() {
             type="text"
             className="flex-1 bg-transparent outline-none text-gray-600 placeholder:text-gray-400"
             value={address}
-            placeholder="Please Enter Address"
+            placeholder={t.pleaseEnterAddress}
             onChange={(e) => {
               const v = e.target.value
               setAddress(v)
@@ -286,7 +311,7 @@ export default function Map() {
       {/* Show Route / Confirm button */}
       <div className="mt-4 text-center">
         <button className="btn" onClick={handlePrimaryButtonClick}>
-          {routeReady ? "Confirm" : "Show Route"}
+          {routeReady ? t.confirm : t.showRoute}
         </button>
       </div>
 

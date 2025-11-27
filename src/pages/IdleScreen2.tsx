@@ -1,8 +1,12 @@
-import { useNavigate } from "react-router-dom"
-import routes from "../data/routes.json"
+import { useNavigate } from 'react-router-dom'
+import routes from '../data/routes.json'
+import { useLang } from '../App'
+import { STRINGS } from '../i18n/strings'
 
 export default function IdleScreen2() {
   const nav = useNavigate()
+  const { lang } = useLang()
+  const t = STRINGS[lang]
   const visibleRoutes = routes.slice(0, 6)
 
   return (
@@ -30,7 +34,7 @@ export default function IdleScreen2() {
         onClick={() => nav("/home")}
         className="absolute bottom-0 left-0 right-0 bg-[#f28c28] text-white text-center text-2xl font-extrabold py-6 cursor-pointer rounded-b-[25px] tracking-wide shadow-lg"
       >
-        Touch to Start
+        {t.touchToStart}
       </div>
     </div>
   )

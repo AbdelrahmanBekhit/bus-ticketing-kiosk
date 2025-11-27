@@ -5,15 +5,34 @@
 .kiosk-card {
   @apply w-[430px] h-[720px] bg-white rounded-kiosk shadow-xl overflow-hidden flex flex-col justify-between;
 }
+
 body {
   @apply flex items-center justify-center min-h-screen bg-[#a7a7af];
 }
-.header-bar { @apply bg-brand-orange text-white px-5 py-3 flex items-center justify-between; }
-.btn { @apply px-5 py-3 rounded-full font-semibold bg-brand-orange text-white active:translate-y-[1px]; }
-.btn-secondary { @apply px-5 py-3 rounded-full font-semibold border border-gray-300; }
-.input { @apply w-full border border-gray-300 rounded-full px-4 py-3 focus:outline-none; }
-.card { @apply bg-white rounded-2xl shadow p-5; }
-.list-tile { @apply flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white; }
+
+.header-bar {
+  @apply bg-brand-orange text-white px-5 py-3 flex items-center justify-between;
+}
+
+.btn {
+  @apply px-5 py-3 rounded-full font-semibold bg-brand-orange text-white active:translate-y-[1px];
+}
+
+.btn-secondary {
+  @apply px-5 py-3 rounded-full font-semibold border border-gray-300;
+}
+
+.input {
+  @apply w-full border border-gray-300 rounded-full px-4 py-3 focus:outline-none;
+}
+
+.card {
+  @apply bg-white rounded-2xl shadow p-5;
+}
+
+.list-tile {
+  @apply flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white;
+}
 
 @layer base {
   body {
@@ -22,10 +41,13 @@ body {
 }
 
 @layer utilities {
+
   /* Hide scrollbar but keep scroll behavior */
   .scroll-no-bar {
-    -ms-overflow-style: none; /* IE/Edge */
-    scrollbar-width: none;    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
   .scroll-no-bar::-webkit-scrollbar {
