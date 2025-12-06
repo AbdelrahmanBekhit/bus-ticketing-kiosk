@@ -8,6 +8,7 @@ import {
   DirectionsRenderer,
 } from "@react-google-maps/api"
 import KeyboardOverlay from "../components/KeyboardOverlay"
+import Modal from "../components/Modal"
 import { extractBusLegs } from "./BusLegSummary"
 import type { BusLegSummary } from "./BusLegSummary"
 import { useLang } from "../App"
@@ -44,6 +45,7 @@ export default function Map() {
   const [requestRoute, setRequestRoute] = useState(false)
 
   const [locationError, setLocationError] = useState<string | null>(null)
+  const [showErrorModal, setShowErrorModal] = useState(false)
 
   const [routeReady, setRouteReady] = useState(false)
 
@@ -119,7 +121,11 @@ export default function Map() {
 
     // No map selection → use address
     const trimmed = address.trim()
-    if (trimmed === "") return
+    if (trimmed === "") {
+      setLocationError(t.pleaseEnterDestination)
+      setShowErrorModal(true)
+      return
+    }
 
     const geocoder = new google.maps.Geocoder()
 
@@ -337,6 +343,25 @@ export default function Map() {
           }}
         />
       )}
+
+
+      {/* Error Modal */}
+      <Modal open={showErrorModal} onClose={() => setShowErrorModal(false)}>
+        <div className="flex flex-col items-center gap-6 text-center">
+          <h3 className="text-xl font-bold text-red-600">
+            {t.pleaseEnterDestination}
+          </h3>
+          <p className="text-gray-600">
+            {t.pleaseEnterBeforeContinuing}
+          </p>
+          <button
+            onClick={() => setShowErrorModal(false)}
+            className="px-8 py-3 bg-orange-600 text-white rounded-xl font-semibold active:scale-95 transition-transform"
+          >
+            {t.ok}
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }
